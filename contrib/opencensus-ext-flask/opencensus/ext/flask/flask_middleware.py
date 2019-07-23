@@ -29,6 +29,7 @@ from opencensus.trace import stack_trace
 from opencensus.trace import status
 from opencensus.trace import tracer as tracer_module
 from opencensus.trace import utils
+from opencensus.trace import execution_context
 from opencensus.trace.propagation import trace_context_http_header_format
 
 HTTP_METHOD = attributes_helper.COMMON_ATTRIBUTES['HTTP_METHOD']
@@ -131,13 +132,16 @@ class FlaskMiddleware(object):
         try:
             span_context = self.propagator.from_headers(flask.request.headers)
 
-            tracer = tracer_module.Tracer(
+            tracer = execution_context.get_opencensus_tracer()
+
+            """tracer = tracer_module.Tracer(
                 span_context=span_context,
                 sampler=self.sampler,
                 exporter=self.exporter,
                 propagator=self.propagator)
+            """
 
-            span = tracer.start_span()
+            span = tracer.current_span()
             span.span_kind = span_module.SpanKind.SERVER
             # Set the span name as the name of the current module name
             span.name = '[{}]{}'.format(
